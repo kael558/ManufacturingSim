@@ -1,16 +1,6 @@
 from enum import Enum
+
 import numpy as np
-
-
-class Inspector(Enum):
-    I1 = "I1"
-    I2 = "I2"
-
-
-class Workstation(Enum):
-    W1 = "W1"
-    W2 = "W2"
-    W3 = "W3"
 
 
 class Component(Enum):
@@ -19,119 +9,16 @@ class Component(Enum):
     C3 = "C3"
 
 
-class Product(Enum):
-    P1 = "P1"
-    P2 = "P2"
-    P3 = "P3"
-
-
-def partition(lst, predicate):
-    lst1, lst2 = [], []
-    for elem in lst:
-        if predicate(elem):
-            lst1.append(elem)
-        else:
-            lst2.append(elem)
-    return lst1, lst2
-
-
-class TaskQueue:
-    def __init__(self):
-        self.tasks = []
-        self.blockedTasks = []
-
-    def attempt_complete_task(self):
-        if len(self.tasks) == 0:
-            return
-
-        time_taken = self.tasks[0].time
-        for task in self.tasks:
-            task.time = max(task.time - time_taken, 0)
-
-        finished_tasks, self.tasks = partition(self.tasks, lambda t: t.time == 0.0)
-
-        for task in finished_tasks:
-            if task.is_finishable():
-                task.finish()
-            else:
-                self.blockedTasks.append(task)
-
-    def attempt_blocked_tasks(self):
-        finished_tasks, self.blockedTasks = partition(self.blockedTasks, lambda t: t.is_finishable())
-        for task in finished_tasks:
-            task.finish()
-        return len(finished_tasks) > 0
-
-    def add_task(self, new_task):
-        for i in range(len(self.tasks)):  # cant be arsed to do binary search
-            if new_task.time < self.tasks[i].time:
-                self.tasks.insert(i, new_task)
-                break
-        else:
-            self.tasks.append(new_task)
-
-    def __str__(self):
-        return "\n--State of tasks--\n" + "\n".join(map(str, self.tasks)) + \
-               ("\n--State of blocked tasks--\n" + "\n".join(map(str, self.blockedTasks)) if len(
-                   self.blockedTasks) > 0 else "")
-
-
-class Task:
-    def __init__(self, processor, components):
-        self.time = np.random.normal(loc=500 if processor.isWorkstation else 100,
-                                     scale=10 if processor.isWorkstation else 5)
-        self.processor = processor
-        self.components = components
-
-    def finish(self):
-        if self.processor.isWorkstation:
-            print(self.processor.name, ": produced product")
-        else:
-            if self.processor.name == Inspector.I1:
-                min_component_workstation = min(self.processor.receivers.values(),
-                                                key=lambda w: w.get_num_components(Component.C1))
-                min_component_workstation.add_component(self.components[0])
-                print(self.processor.name, ": sent component C1 to " + str(min_component_workstation))
-            else:
-                if self.components[0] == Component.C2:
-                    self.processor.receivers[Workstation.W2].add_component(self.components[0])
-                    print(self.processor.name, ": sent component C2 to " + str(Workstation.W2))
-                else:
-                    self.processor.receivers[Workstation.W3].add_component(self.components[0])
-                    print(self.processor.name, ": sent component C3 to " + str(Workstation.W3))
-        self.processor.free()
-
-    def is_finishable(self):
-        if self.processor.isWorkstation:
-            return True
-
-        if self.processor.name == Inspector.I1:
-            return not all(receiver.is_full() for receiver in self.processor.receivers.values())
-
-        if self.components[0] == Component.C2:
-            return self.processor.receivers[Workstation.W2].get_num_components(self.components[0]) != 2
-
-        return self.processor.receivers[Workstation.W3].get_num_components(self.components[0]) != 2
-
-    def __str__(self):
-        if self.processor.isWorkstation:
-            return str(self.processor.name) + " needs " + str(self.time) + " to process " + \
-                   ",".join(map(str, self.components))
-
-        return str(self.processor.name) + " needs " + str(self.time) + " to complete " + \
-               ",".join(map(str, self.components))
-
-
 class Processor:
-    def __init__(self, name, buffers, receivers):
-        self.blocked = False
-        self.name = name
+    def __init__(self, index: int, buffers: dict):
+        """
+        The superclass for machine-like thing that inspects/processes things
+        :param index: the index of the processor (e.g. 1 for I1, 3 for W3)
+        :param buffers: a dictionary where keys are components and values are the numbers of respective component
+        """
+        self.index = index
         self.buffers = buffers
-        self.isWorkstation = str(name).startswith("W")
-        self.receivers = receivers
-
-    def __str__(self):
-        return str(self.name)
+        self.blocked = False
 
     def is_free(self):
         return not self.blocked
@@ -141,9 +28,6 @@ class Processor:
 
     def free(self):
         self.blocked = False
-
-    def is_full(self):
-        return all(buffer == 2 for buffer in self.buffers.values())
 
     def get_num_components(self, component):
         return self.buffers[component]
@@ -155,39 +39,206 @@ class Processor:
         return all(buffer > 0 for buffer in self.buffers.values())
 
     def get_components(self):
-        if self.name == Inspector.I2:
-            return [Component.C2 if np.random.random() < 0.5 else Component.C3]
-
         lst = []
         for component in self.buffers.keys():
             self.buffers[component] -= 1
             lst.append(component)
         return lst
 
-    def get_string_state(self):
-        if self.isWorkstation:
-            if self.is_free():
-                return str(self.name) + " is blocked. Buffer: " + str(self.buffers)
+    def __str__(self):
+        pass
+
+    def name(self):
+        pass
+
+
+class Workstation(Processor):
+    def __str__(self):
+        state = "free" if self.is_free() else "processing or blocked"
+        return "Workstation " + str(self.index) + " is " + state + ". Buffer: " + str(self.buffers)
+
+    def name(self):
+        return "Workstation " + str(self.index)
+
+    def is_full(self):
+        return all(buffer == 2 for buffer in self.buffers.values())
+
+
+class Inspector(Processor):
+    def __str__(self):
+        state = "free" if self.is_free() else "inspecting or blocked"
+        return "Inspector " + str(self.index) + " is " + state + "."
+
+    def name(self):
+        return "Inspector " + str(self.index)
+
+    def get_components(self):
+        if self.index == 2:
+            return [Component.C2 if np.random.random() < 0.5 else Component.C3]
+        return super().get_components()
+
+
+def partition(lst, predicate):
+    """
+    helper method to separate lst into two lists based on predicate
+    :param lst: the initial list
+    :param predicate: the separation predicate
+    :return: the two lists
+    """
+    lst1, lst2 = [], []
+    for elem in lst:
+        if predicate(elem):
+            lst1.append(elem)
+        else:
+            lst2.append(elem)
+    return lst1, lst2
+
+
+class Task:
+    def __init__(self, processor: Processor, components: list):
+        """
+        Obj that wraps processor with time to process/inspect to components.
+        :param processor: either a workstation or an inspector
+        :param components: the components that the processor works with
+        """
+        # TODO time to inspect/process should be taken from fitted gaussians from data provided.
+        self.time = np.random.normal(loc=500 if isinstance(processor, Workstation) else 100,
+                                     scale=10 if isinstance(processor, Workstation) else 5)
+        self.processor = processor
+        self.components = components
+
+    def is_finishable(self):
+        """
+        Check to see if product can actually go somewhere
+        :return:
+        """
+        if isinstance(self.processor, Workstation):
+            return True
+        component = self.components[0]  # inspectors only have 1 component
+        workstations = routing[component]
+        return not all(workstation.get_num_components(component) == 2 for workstation in workstations)
+
+    def finish(self):
+        """
+        Finishes a Task by sending the product to the appropriate place
+        :return:
+        """
+        if isinstance(self.processor, Workstation):
+            # TODO probably add a counter to keep track of how many products are made
+            print("Workstation ", self.processor.index, ": produced Product", self.processor.index)
+        else:
+            component = self.components[0]  # inspectors only have 1 component
+            # getting the minimum number of components
+            min_num_components = min(routing[component], key=lambda w: w.get_num_components(component)) \
+                .get_num_components(component)
+
+            # getting all the workstations with the minimum number of components
+            workstations = list(filter(lambda w: w.get_num_components(component) == min_num_components,
+                                       routing[component]))
+
+            # choose a random workstation from that list
+            workstation = np.random.choice(workstations)
+
+            # send the component there
+            workstation.add_component(component)
+            print(str(self.processor.name()), ": sent component", component.value, " to ", str(workstation.name()))
+        self.processor.free()  # free the processor to be used again
+
+    def __str__(self):
+        """
+        :return: the str representation of the task
+        """
+        if isinstance(self.processor, Workstation):
+            return str(self.processor.name()) + " needs " + str(self.time) + " to process " + \
+                   ",".join(map(str, self.components))
+        return str(self.processor.name()) + " needs " + str(self.time) + " to inspect " + \
+               ",".join(map(str, self.components))
+
+
+class TaskQueue:
+    def __init__(self):
+        """
+        tasks: a list of Task objects sorted by time remaining to complete the task
+        blockedTasks: a list of Task objects that are blocked from sending their product
+        """
+        self.tasks = []
+        self.blockedTasks = []
+
+    def attempt_complete_task(self):
+        """
+        Attempts to complete the next task. It may be blocked, so it may be placed in a blockedTask list instead.
+        """
+        if len(self.tasks) == 0:
+            return
+
+        time_taken = self.tasks[0].time
+        for task in self.tasks:
+            task.time = max(task.time - time_taken, 0)  # update the time for all other tasks
+
+        #  get the finished tasks
+        finished_tasks, self.tasks = partition(self.tasks, lambda t: t.time == 0.0)
+
+        #  finish or block the tasks
+        for task in finished_tasks:
+            if task.is_finishable():
+                task.finish()
             else:
-                return str(self.name) + " is processing. Buffer: " + str(self.buffers)
+                self.blockedTasks.append(task)
 
-        return str(self.name) + " is inspecting."
+    def attempt_blocked_tasks(self):
+        """
+        check to see if blocked tasks can be completed and finish them.
+        :return: the processors that finished their task
+        """
+        finished_tasks, self.blockedTasks = partition(self.blockedTasks, lambda t: t.is_finishable())
+        for task in finished_tasks:
+            task.finish()
+        return [task.processor for task in finished_tasks]
+
+    def add_task(self, new_task: Task):
+        """
+        places a new task in the appropriate place in the task list
+        :param new_task: the new task to be added
+        """
+        for i in range(len(self.tasks)):  # cant be arsed to do binary search
+            if new_task.time < self.tasks[i].time:
+                self.tasks.insert(i, new_task)
+                break
+        else:
+            self.tasks.append(new_task)
+
+    def __str__(self):
+        """
+        :return: the str representation of the taskqueue
+        """
+        return "\n--State of tasks--\n" + "\n".join(map(str, self.tasks)) + \
+               ("\n--State of blocked tasks--\n" + "\n".join(map(str, self.blockedTasks)) if len(
+                   self.blockedTasks) > 0 else "")
 
 
+global routing
 if __name__ == '__main__':
-    infinity = 9999999
+    infinity = 9999999  # its over 9000 so its basically infinity
 
     taskqueue = TaskQueue()
-    W1 = Processor(Workstation.W1, {Component.C1: 0}, {Product.P1: 0})
-    W2 = Processor(Workstation.W2, {Component.C1: 0, Component.C2: 0}, {Product.P2: 0})
-    W3 = Processor(Workstation.W3, {Component.C1: 0, Component.C3: 0}, {Product.P3: 0})
+    W1 = Workstation(1, {Component.C1: 0})
+    W2 = Workstation(2, {Component.C1: 0, Component.C2: 0})
+    W3 = Workstation(3, {Component.C1: 0, Component.C3: 0})
 
-    I1 = Processor(Inspector.I1, {Component.C1: infinity}, {Workstation.W1: W1, Workstation.W2: W2, Workstation.W3: W3})
-    I2 = Processor(Inspector.I2, {Component.C2: infinity, Component.C3: infinity},
-                   {Workstation.W2: W2, Workstation.W3: W3})
+    I1 = Inspector(1, {Component.C1: infinity})
+    I2 = Inspector(2, {Component.C2: infinity, Component.C3: infinity})
+
+    processors = [I1, I2, W1, W2, W3]
+
+    # global variable routing for components to workstations
+    routing = {Component.C1: [W1, W2, W3], Component.C2: [W2], Component.C3: [W3]}
 
 
-    def attempt_start_task(processor):
+    def attempt_start_task(processor: Processor):
+        """
+        helper method to try and create a task is possible
+        :param processor: either the workstation or inspector
+        """
         if processor.is_free() and processor.has_components():
             task = Task(processor, processor.get_components())
             processor.block()
@@ -195,25 +246,18 @@ if __name__ == '__main__':
 
 
     while True:
-        print("\n--Tasks Completed--")
-        taskqueue.attempt_complete_task()
+        # attempt to start tasks
+        for processor in processors:
+            attempt_start_task(processor)
 
-        attempt_start_task(I1)
-        attempt_start_task(I2)
-        attempt_start_task(W1)
-        attempt_start_task(W2)
-        attempt_start_task(W3)
-        if taskqueue.attempt_blocked_tasks():
-            attempt_start_task(I1)
-            attempt_start_task(I2)
-            attempt_start_task(W1)
-            attempt_start_task(W2)
-            attempt_start_task(W3)
+        # this part ensures if a workstation finishes a product, a blocked inspector will send a component right away
+        free_processors = taskqueue.attempt_blocked_tasks()  # get the processors from finished tasks that were blocked
+        for processor in free_processors:
+            attempt_start_task(processor)
 
         print(taskqueue)
         print("--State of processors--")
-        print(I1.get_string_state())
-        print(I2.get_string_state())
-        print(W1.get_string_state())
-        print(W2.get_string_state())
-        print(W3.get_string_state())
+        print("\n".join(list(map(str, processors))))
+
+        print("\n--Tasks Completed--")
+        taskqueue.attempt_complete_task()  # goto and finish the next task
