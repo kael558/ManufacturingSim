@@ -53,12 +53,14 @@ class Processor:
 
 
 class Workstation(Processor):
+    counter = 0
+
     def __str__(self):
         state = "free" if self.is_free() else "processing or blocked"
-        return "Workstation " + str(self.index) + " is " + state + ". Buffer: " + str(self.buffers)
+        return f"Workstation {self.index} is {state}. Buffer: {self.buffers}"
 
     def name(self):
-        return "Workstation " + str(self.index)
+        return f"Workstation {self.index}"
 
     def is_full(self):
         return all(buffer == 2 for buffer in self.buffers.values())
@@ -67,10 +69,10 @@ class Workstation(Processor):
 class Inspector(Processor):
     def __str__(self):
         state = "free" if self.is_free() else "inspecting or blocked"
-        return "Inspector " + str(self.index) + " is " + state + "."
+        return f"Inspector {self.index} is {state}."
 
     def name(self):
-        return "Inspector " + str(self.index)
+        return f"Inspector {self.index}"
 
     def get_components(self):
         if self.index == 2:
@@ -124,8 +126,9 @@ class Task:
         :return:
         """
         if isinstance(self.processor, Workstation):
-            # TODO probably add a counter to keep track of how many products are made
-            print("Workstation ", self.processor.index, ": produced Product", self.processor.index)
+            print(f"Workstation {self.processor.index}: produced Product {self.processor.index}")
+            self.processor.counter += 1
+            print(f"It has produced {self.processor.counter} products thus far.")
         else:
             component = self.components[0]  # inspectors only have 1 component
             # getting the minimum number of components
@@ -141,7 +144,7 @@ class Task:
 
             # send the component there
             workstation.add_component(component)
-            print(str(self.processor.name()), ": sent component", component.value, " to ", str(workstation.name()))
+            print(f"{self.processor.name()}: sent component {component.value} to {workstation.name()}")
         self.processor.free()  # free the processor to be used again
 
     def __str__(self):
@@ -149,9 +152,9 @@ class Task:
         :return: the str representation of the task
         """
         if isinstance(self.processor, Workstation):
-            return str(self.processor.name()) + " needs " + str(self.time) + " to process " + \
+            return f"{self.processor.name()} needs {self.time} to process " + \
                    ",".join(map(str, self.components))
-        return str(self.processor.name()) + " needs " + str(self.time) + " to inspect " + \
+        return f"{self.processor.name()} needs {self.time} to inspect " + \
                ",".join(map(str, self.components))
 
 
@@ -200,7 +203,7 @@ class TaskQueue:
         places a new task in the appropriate place in the task list
         :param new_task: the new task to be added
         """
-        for i in range(len(self.tasks)):  # cant be arsed to do binary search
+        for i, _ in enumerate(self.tasks):  # cant be arsed to do binary search
             if new_task.time < self.tasks[i].time:
                 self.tasks.insert(i, new_task)
                 break
@@ -220,7 +223,7 @@ global routing
 if __name__ == '__main__':
     infinity = 9999999  # its over 9000 so its basically infinity
 
-    taskqueue = TaskQueue()
+    task_queue = TaskQueue()
     W1 = Workstation(1, {Component.C1: 0})
     W2 = Workstation(2, {Component.C1: 0, Component.C2: 0})
     W3 = Workstation(3, {Component.C1: 0, Component.C3: 0})
@@ -234,15 +237,15 @@ if __name__ == '__main__':
     routing = {Component.C1: [W1, W2, W3], Component.C2: [W2], Component.C3: [W3]}
 
 
-    def attempt_start_task(processor: Processor):
+    def attempt_start_task(processor_curr: Processor):
         """
         helper method to try and create a task is possible
-        :param processor: either the workstation or inspector
+        :param processor_curr: either the workstation or inspector
         """
-        if processor.is_free() and processor.has_components():
-            task = Task(processor, processor.get_components())
-            processor.block()
-            taskqueue.add_task(task)
+        if processor_curr.is_free() and processor_curr.has_components():
+            task = Task(processor_curr, processor_curr.get_components())
+            processor_curr.block()
+            task_queue.add_task(task)
 
 
     while True:
@@ -251,13 +254,13 @@ if __name__ == '__main__':
             attempt_start_task(processor)
 
         # this part ensures if a workstation finishes a product, a blocked inspector will send a component right away
-        free_processors = taskqueue.attempt_blocked_tasks()  # get the processors from finished tasks that were blocked
+        free_processors = task_queue.attempt_blocked_tasks()  # get the processors from finished tasks that were blocked
         for processor in free_processors:
             attempt_start_task(processor)
 
-        print(taskqueue)
+        print(task_queue)
         print("--State of processors--")
         print("\n".join(list(map(str, processors))))
 
         print("\n--Tasks Completed--")
-        taskqueue.attempt_complete_task()  # goto and finish the next task
+        task_queue.attempt_complete_task()  # goto and finish the next task
