@@ -97,20 +97,20 @@ def partition(lst, predicate):
 
 
 class Task:
-    def __init__(self, processor: Processor, components: list):
+    def __init__(self, processor_curr: Processor, components: list):
         """
         Obj that wraps processor with time to process/inspect to components.
-        :param processor: either a workstation or an inspector
+        :param processor_curr: either a workstation or an inspector
         :param components: the components that the processor works with
         """
-        # TODO time to inspect/process should be taken from fitted gaussians from data provided.
+        # TODO time to inspect/process should be taken from fitted Gaussians from data provided.
         self.time = np.random.normal(
-            loc=500 if isinstance(processor, Workstation) else 100,
-            scale=10 if isinstance(processor, Workstation) else 5)
-        self.processor = processor
+            loc=500 if isinstance(processor_curr, Workstation) else 100,
+            scale=10 if isinstance(processor_curr, Workstation) else 5)
+        self.processor = processor_curr
         self.components = components
 
-    def is_finishable(self):
+    def can_be_finished(self):
         """
         Check to see if product can actually go somewhere
         :return:
@@ -195,7 +195,7 @@ class TaskQueue:
 
         #  finish or block the tasks
         for task in finished_tasks:
-            if task.is_finishable():
+            if task.can_be_finished():
                 task.finish()
             else:
                 self.blockedTasks.append(task)
@@ -206,7 +206,7 @@ class TaskQueue:
         :return: the processors that finished their task
         """
         finished_tasks, self.blockedTasks = partition(self.blockedTasks, lambda
-            t: t.is_finishable())
+            t: t.can_be_finished())
         for task in finished_tasks:
             task.finish()
         return [task.processor for task in finished_tasks]
@@ -225,7 +225,7 @@ class TaskQueue:
 
     def __str__(self):
         """
-        :return: the str representation of the taskqueue
+        :return: the str representation of the task_queue
         """
         return "\n--State of tasks--\n" + "\n".join(map(str, self.tasks)) + \
                ("\n--State of blocked tasks--\n" + "\n".join(
