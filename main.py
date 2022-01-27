@@ -126,6 +126,7 @@ class Task:
         :return:
         """
         if isinstance(self.processor, Workstation):
+            # TODO That second item in the first f-string looks wrong maybe(?)
             print(f"Workstation {self.processor.index}: produced Product {self.processor.index}")
             self.processor.counter += 1
             print(f"It has produced {self.processor.counter} products thus far.")
