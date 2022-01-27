@@ -104,8 +104,9 @@ class Task:
         :param components: the components that the processor works with
         """
         # TODO time to inspect/process should be taken from fitted gaussians from data provided.
-        self.time = np.random.normal(loc=500 if isinstance(processor, Workstation) else 100,
-                                     scale=10 if isinstance(processor, Workstation) else 5)
+        self.time = np.random.normal(
+            loc=500 if isinstance(processor, Workstation) else 100,
+            scale=10 if isinstance(processor, Workstation) else 5)
         self.processor = processor
         self.components = components
 
@@ -118,7 +119,9 @@ class Task:
             return True
         component = self.components[0]  # inspectors only have 1 component
         workstations = routing[component]
-        return not all(workstation.get_num_components(component) == 2 for workstation in workstations)
+        return not all(
+            workstation.get_num_components(component) == 2 for workstation in
+            workstations)
 
     def finish(self):
         """
@@ -127,17 +130,22 @@ class Task:
         """
         if isinstance(self.processor, Workstation):
             # TODO That second item in the first f-string looks wrong maybe(?)
-            print(f"Workstation {self.processor.index}: produced Product {self.processor.index}")
+            print(
+                f"Workstation {self.processor.index}: produced Product {self.processor.index}")
             self.processor.counter += 1
-            print(f"It has produced {self.processor.counter} products thus far.")
+            print(
+                f"It has produced {self.processor.counter} products thus far.")
         else:
             component = self.components[0]  # inspectors only have 1 component
             # getting the minimum number of components
-            min_num_components = min(routing[component], key=lambda w: w.get_num_components(component)) \
+            min_num_components = min(routing[component],
+                                     key=lambda w: w.get_num_components(
+                                         component)) \
                 .get_num_components(component)
 
             # getting all the workstations with the minimum number of components
-            workstations = list(filter(lambda w: w.get_num_components(component) == min_num_components,
+            workstations = list(filter(lambda w: w.get_num_components(
+                component) == min_num_components,
                                        routing[component]))
 
             # choose a random workstation from that list
@@ -145,7 +153,8 @@ class Task:
 
             # send the component there
             workstation.add_component(component)
-            print(f"{self.processor.name()}: sent component {component.value} to {workstation.name()}")
+            print(
+                f"{self.processor.name()}: sent component {component.value} to {workstation.name()}")
         self.processor.free()  # free the processor to be used again
 
     def __str__(self):
@@ -177,10 +186,12 @@ class TaskQueue:
 
         time_taken = self.tasks[0].time
         for task in self.tasks:
-            task.time = max(task.time - time_taken, 0)  # update the time for all other tasks
+            task.time = max(task.time - time_taken,
+                            0)  # update the time for all other tasks
 
         #  get the finished tasks
-        finished_tasks, self.tasks = partition(self.tasks, lambda t: t.time == 0.0)
+        finished_tasks, self.tasks = partition(self.tasks,
+                                               lambda t: t.time == 0.0)
 
         #  finish or block the tasks
         for task in finished_tasks:
@@ -194,7 +205,8 @@ class TaskQueue:
         check to see if blocked tasks can be completed and finish them.
         :return: the processors that finished their task
         """
-        finished_tasks, self.blockedTasks = partition(self.blockedTasks, lambda t: t.is_finishable())
+        finished_tasks, self.blockedTasks = partition(self.blockedTasks, lambda
+            t: t.is_finishable())
         for task in finished_tasks:
             task.finish()
         return [task.processor for task in finished_tasks]
@@ -216,7 +228,8 @@ class TaskQueue:
         :return: the str representation of the taskqueue
         """
         return "\n--State of tasks--\n" + "\n".join(map(str, self.tasks)) + \
-               ("\n--State of blocked tasks--\n" + "\n".join(map(str, self.blockedTasks)) if len(
+               ("\n--State of blocked tasks--\n" + "\n".join(
+                   map(str, self.blockedTasks)) if len(
                    self.blockedTasks) > 0 else "")
 
 
@@ -235,7 +248,8 @@ if __name__ == '__main__':
     processors = [I1, I2, W1, W2, W3]
 
     # global variable routing for components to workstations
-    routing = {Component.C1: [W1, W2, W3], Component.C2: [W2], Component.C3: [W3]}
+    routing = {Component.C1: [W1, W2, W3], Component.C2: [W2],
+               Component.C3: [W3]}
 
 
     def attempt_start_task(processor_curr: Processor):
