@@ -20,6 +20,7 @@ class Processor:
         self.buffers = buffers
         self.blocked = False
 
+
     def is_free(self):
         return not self.blocked
 
@@ -56,7 +57,7 @@ class Workstation(Processor):
     counter = 0
 
     def __str__(self):
-        state = "free" if self.is_free() else "processing or blocked"
+        state = "free" if self.is_free() else "processing"
         return f"Workstation {self.index} is {state}. Buffer: {self.buffers}"
 
     def name(self):
@@ -67,6 +68,10 @@ class Workstation(Processor):
 
 
 class Inspector(Processor):
+    def __init__(self, index: int, buffers: dict, receiving: dict):
+        super().__init__(index, buffers)
+        self.receiving = receiving
+
     def __str__(self):
         state = "free" if self.is_free() else "inspecting or blocked"
         return f"Inspector {self.index} is {state}."
@@ -119,7 +124,7 @@ class Task:
             return True
         component = self.components[0]  # inspectors only have 1 component
 
-        workstations = routing[component]
+        workstations = self.processor.receiving[component]
         return not all(
             workstation.get_num_components(component) == 2 for workstation in
             workstations)
@@ -139,7 +144,7 @@ class Task:
         else:
             component = self.components[0]  # inspectors only have 1 component
             # getting the minimum number of components
-            min_num_components = min(routing[component],
+            min_num_components = min(self.processor.receiving[component],
                                      key=lambda w: w.get_num_components(
                                          component)) \
                 .get_num_components(component)
@@ -147,7 +152,7 @@ class Task:
             # getting all the workstations with the minimum number of components
             workstations = list(filter(lambda w: w.get_num_components(
                 component) == min_num_components,
-                                       routing[component]))
+                                       self.processor.receiving[component]))
 
             # choosing the workstation with the lowest index
             workstation = min(workstations, key=lambda w: w.index)
@@ -234,7 +239,7 @@ class TaskQueue:
                    self.blockedTasks) > 0 else "")
 
 
-global routing
+#global routing
 if __name__ == '__main__':
     infinity = 9999999  # its over 9000 so its basically infinity
 
@@ -243,15 +248,10 @@ if __name__ == '__main__':
     W2 = Workstation(2, {Component.C1: 0, Component.C2: 0})
     W3 = Workstation(3, {Component.C1: 0, Component.C3: 0})
 
-    I1 = Inspector(1, {Component.C1: infinity})
-    I2 = Inspector(2, {Component.C2: infinity, Component.C3: infinity})
+    I1 = Inspector(1, {Component.C1: infinity}, {Component.C1: [W1, W2, W3]})
+    I2 = Inspector(2, {Component.C2: infinity, Component.C3: infinity}, {Component.C2: [W2], Component.C3: [W3]})
 
     processors = [I1, I2, W1, W2, W3]
-
-    # global variable routing for components to workstations
-    routing = {Component.C1: [W1, W2, W3], Component.C2: [W2],
-               Component.C3: [W3]}
-
 
     def attempt_start_task(processor_curr: Processor):
         """
