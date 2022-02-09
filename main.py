@@ -115,9 +115,10 @@ class Task:
         Check to see if product can actually go somewhere
         :return:
         """
-        if isinstance(self.processor, Workstation):
+        if isinstance(self.processor, Workstation): # workstations can always finish
             return True
         component = self.components[0]  # inspectors only have 1 component
+
         workstations = routing[component]
         return not all(
             workstation.get_num_components(component) == 2 for workstation in
@@ -148,8 +149,8 @@ class Task:
                 component) == min_num_components,
                                        routing[component]))
 
-            # choose a random workstation from that list
-            workstation = np.random.choice(workstations)
+            # choosing the workstation with the lowest index
+            workstation = min(workstations, key=lambda w: w.index)
 
             # send the component there
             workstation.add_component(component)
