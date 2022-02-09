@@ -5,12 +5,12 @@ if __name__ == '__main__':
     infinity = 9999999  # its over 9000 so its basically infinity
 
     task_queue = TaskQueue()
-    W1 = Workstation(1, {Component.C1: 0})
-    W2 = Workstation(2, {Component.C1: 0, Component.C2: 0})
-    W3 = Workstation(3, {Component.C1: 0, Component.C3: 0})
+    W1 = Workstation(index=1, buffers={Component.C1: 0}, receiving={})
+    W2 = Workstation(index=2, buffers={Component.C1: 0, Component.C2: 0}, receiving={})
+    W3 = Workstation(index=3, buffers={Component.C1: 0, Component.C3: 0}, receiving={})
 
-    I1 = Inspector(1, {Component.C1: infinity}, {Component.C1: [W1, W2, W3]})
-    I2 = Inspector(2, {Component.C2: infinity, Component.C3: infinity}, {Component.C2: [W2], Component.C3: [W3]})
+    I1 = Inspector(index=1, buffers={Component.C1: infinity}, receiving={Component.C1: [W1, W2, W3]})
+    I2 = Inspector(index=2, buffers={Component.C2: infinity, Component.C3: infinity}, receiving={Component.C2: [W2], Component.C3: [W3]})
 
     processors = [I1, I2, W1, W2, W3]
 

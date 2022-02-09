@@ -9,7 +9,7 @@ class Component(Enum):
 
 
 class Processor:
-    def __init__(self, index: int, buffers: dict):
+    def __init__(self, index: int, buffers: dict, receiving: dict):
         """
         The superclass for machine-like thing that inspects/processes things
         :param index: the index of the processor (e.g. 1 for I1, 3 for W3)
@@ -18,6 +18,7 @@ class Processor:
         self.index = index
         self.buffers = buffers
         self.blocked = False
+        self.receiving = receiving
 
     def is_free(self):
         return not self.blocked
@@ -66,10 +67,6 @@ class Workstation(Processor):
 
 
 class Inspector(Processor):
-    def __init__(self, index: int, buffers: dict, receiving: dict):
-        super().__init__(index, buffers)
-        self.receiving = receiving
-
     def get_components(self):
         if self.index == 2:  # if current inspector is I2
             return [Component.C2 if random.random() < 0.5 else Component.C3]
