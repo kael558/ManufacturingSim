@@ -44,25 +44,25 @@ class Processor:
             lst.append(component)
         return lst
 
-    def __str__(self):
+    def name(self):
         pass
 
-    def name(self):
+    def __str__(self):
         pass
 
 
 class Workstation(Processor):
     counter = 0
 
-    def __str__(self):
-        state = "free" if self.is_free() else "processing"
-        return f"Workstation {self.index} is {state}. Buffer: {self.buffers}"
+    def is_full(self):
+        return all(buffer == 2 for buffer in self.buffers.values())
 
     def name(self):
         return f"Workstation {self.index}"
 
-    def is_full(self):
-        return all(buffer == 2 for buffer in self.buffers.values())
+    def __str__(self):
+        state = "free" if self.is_free() else "processing"
+        return f"Workstation {self.index} is {state}. Buffer: {self.buffers}"
 
 
 class Inspector(Processor):
@@ -70,14 +70,14 @@ class Inspector(Processor):
         super().__init__(index, buffers)
         self.receiving = receiving
 
-    def __str__(self):
-        state = "free" if self.is_free() else "inspecting or blocked"
-        return f"Inspector {self.index} is {state}."
-
-    def name(self):
-        return f"Inspector {self.index}"
-
     def get_components(self):
         if self.index == 2:
             return [Component.C2 if random.random() < 0.5 else Component.C3]
         return super().get_components()
+
+    def name(self):
+        return f"Inspector {self.index}"
+
+    def __str__(self):
+        state = "free" if self.is_free() else "inspecting or blocked"
+        return f"Inspector {self.index} is {state}."

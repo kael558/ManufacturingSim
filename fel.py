@@ -93,10 +93,10 @@ class TaskQueue:
     def __init__(self):
         """
         tasks: a list of Task objects sorted by time remaining to complete the task
-        blockedTasks: a list of Task objects that are blocked from sending their product
+        blocked_tasks: a list of Task objects that are blocked from sending their product
         """
         self.tasks = []
-        self.blockedTasks = []
+        self.blocked_tasks = []
 
     def attempt_complete_task(self):
         """
@@ -119,14 +119,14 @@ class TaskQueue:
             if task.can_be_finished():
                 task.finish()
             else:
-                self.blockedTasks.append(task)
+                self.blocked_tasks.append(task)
 
     def attempt_blocked_tasks(self):
         """
         check to see if blocked tasks can be completed and finish them.
         :return: the processors that finished their task
         """
-        finished_tasks, self.blockedTasks = partition(self.blockedTasks, lambda
+        finished_tasks, self.blocked_tasks = partition(self.blocked_tasks, lambda
             t: t.can_be_finished())
         for task in finished_tasks:
             task.finish()
@@ -150,5 +150,5 @@ class TaskQueue:
         """
         return "\n--State of tasks--\n" + "\n".join(map(str, self.tasks)) + \
                ("\n--State of blocked tasks--\n" + "\n".join(
-                   map(str, self.blockedTasks)) if len(
-                   self.blockedTasks) > 0 else "")
+                   map(str, self.blocked_tasks)) if len(
+                   self.blocked_tasks) > 0 else "")
