@@ -1,6 +1,7 @@
 from processors import Processor, Workstation
 from numpy import random
 
+
 class Task:
     def __init__(self, processor_curr: Processor, components: list):
         """
@@ -8,7 +9,7 @@ class Task:
         :param processor_curr: either a workstation or an inspector
         :param components: the components that the processor works with
         """
-        # TODO time to inspect/process should be taken from fitted Gaussians from data provided.
+        # TODO time to inspect/process should be taken from fitted distributions of data provided.
         self.time = random.normal(
             loc=500 if isinstance(processor_curr, Workstation) else 100,
             scale=10 if isinstance(processor_curr, Workstation) else 5)
@@ -20,7 +21,7 @@ class Task:
         Check to see if product can actually go somewhere
         :return:
         """
-        if isinstance(self.processor, Workstation): # workstations can always finish
+        if isinstance(self.processor, Workstation):  # workstations can always finish
             return True
         component = self.components[0]  # inspectors only have 1 component
 
@@ -89,6 +90,7 @@ def partition(lst, predicate):
             lst2.append(elem)
     return lst1, lst2
 
+
 class TaskQueue:
     def __init__(self):
         """
@@ -126,8 +128,7 @@ class TaskQueue:
         check to see if blocked tasks can be completed and finish them.
         :return: the processors that finished their task
         """
-        finished_tasks, self.blocked_tasks = partition(self.blocked_tasks, lambda
-            t: t.can_be_finished())
+        finished_tasks, self.blocked_tasks = partition(self.blocked_tasks, lambda t: t.can_be_finished())
         for task in finished_tasks:
             task.finish()
         return [task.processor for task in finished_tasks]

@@ -1,6 +1,7 @@
 from numpy import random
 from enum import Enum
 
+
 class Component(Enum):
     C1 = "C1"
     C2 = "C2"
@@ -17,7 +18,6 @@ class Processor:
         self.index = index
         self.buffers = buffers
         self.blocked = False
-
 
     def is_free(self):
         return not self.blocked
@@ -71,7 +71,7 @@ class Inspector(Processor):
         self.receiving = receiving
 
     def get_components(self):
-        if self.index == 2:
+        if self.index == 2:  # if current inspector is I2
             return [Component.C2 if random.random() < 0.5 else Component.C3]
         return super().get_components()
 
