@@ -76,7 +76,7 @@ class Inspector(Processor):
 
     def get_components(self):
         if self.index == 2:
-            return [Component.C2 if np.random.random() < 0.5 else Component.C3]
+            return [Component.C2 if np.random.random() <= 0.5 else Component.C3]
         return super().get_components()
 
 
@@ -104,9 +104,19 @@ class Task:
         :param components: the components that the processor works with
         """
         # TODO time to inspect/process should be taken from fitted Gaussians from data provided.
-        self.time = np.random.normal(
-            loc=500 if isinstance(processor_curr, Workstation) else 100,
-            scale=10 if isinstance(processor_curr, Workstation) else 5)
+        self.rng = np.random.default_rng()
+        if isinstance(processor_curr, Workstation):
+            self.time = {
+                1: self.rng.exponential(4.604416667),
+                2: self.rng.exponential(11.0926066666667),
+                3: self.rng.exponential(8.79558),
+            }[processor_curr.index]
+        else:
+            self.time = {
+                Component.C1: self.rng.exponential(10.35791),
+                Component.C2: self.rng.exponential(15.53690333),
+                Component.C3: self.rng.exponential(20.63275667),
+            }[components[0]]
         self.processor = processor_curr
         self.components = components
 
@@ -129,7 +139,6 @@ class Task:
         :return:
         """
         if isinstance(self.processor, Workstation):
-            # TODO That second item in the first f-string looks wrong maybe(?)
             print(
                 f"Workstation {self.processor.index}: produced Product {self.processor.index}")
             self.processor.counter += 1
@@ -148,8 +157,8 @@ class Task:
                 component) == min_num_components,
                                        routing[component]))
 
-            # choose a random workstation from that list
-            workstation = np.random.choice(workstations)
+            # Prioritize first workstation
+            workstation = workstations[0]
 
             # send the component there
             workstation.add_component(component)
