@@ -1,5 +1,6 @@
-from processors import Processor, Workstation
-from numpy import random
+import numpy as np
+
+from processors import Processor, Workstation, Component
 
 
 class Task:
@@ -9,10 +10,19 @@ class Task:
         :param processor_curr: either a workstation or an inspector
         :param components: the components that the processor works with
         """
-        # TODO time to inspect/process should be taken from fitted distributions of data provided.
-        self.time = random.normal(
-            loc=500 if isinstance(processor_curr, Workstation) else 100,
-            scale=10 if isinstance(processor_curr, Workstation) else 5)
+        self.rng = np.random.default_rng()
+        if isinstance(processor_curr, Workstation):
+            self.time = {
+                1: self.rng.exponential(4.604416667),
+                2: self.rng.exponential(11.0926066666667),
+                3: self.rng.exponential(8.79558),
+            }[processor_curr.index]
+        else:
+            self.time = {
+                Component.C1: self.rng.exponential(10.35791),
+                Component.C2: self.rng.exponential(15.53690333),
+                Component.C3: self.rng.exponential(20.63275667),
+            }[components[0]]
         self.processor = processor_curr
         self.components = components
 
@@ -36,7 +46,6 @@ class Task:
         :return:
         """
         if isinstance(self.processor, Workstation):
-            # TODO That second item in the first f-string looks wrong maybe(?)
             print(
                 f"Workstation {self.processor.index}: produced Product {self.processor.index}")
             self.processor.counter += 1

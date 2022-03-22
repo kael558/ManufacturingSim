@@ -69,7 +69,7 @@ class Workstation(Processor):
 class Inspector(Processor):
     def get_components(self):
         if self.index == 2:  # if current inspector is I2
-            return [Component.C2 if random.random() < 0.5 else Component.C3]
+            return [Component.C2 if random.random() <= 0.5 else Component.C3]
         return super().get_components()
 
     def name(self):
