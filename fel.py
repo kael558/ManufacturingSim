@@ -31,7 +31,8 @@ class Task:
         Check to see if product can actually go somewhere
         :return:
         """
-        if isinstance(self.processor, Workstation):  # workstations can always finish
+        if isinstance(self.processor,
+                      Workstation):  # workstations can always finish
             return True
         component = self.components[0]  # inspectors only have 1 component
 
@@ -137,7 +138,9 @@ class TaskQueue:
         check to see if blocked tasks can be completed and finish them.
         :return: the processors that finished their task
         """
-        finished_tasks, self.blocked_tasks = partition(self.blocked_tasks, lambda t: t.can_be_finished())
+        finished_tasks, self.blocked_tasks = partition(self.blocked_tasks,
+                                                       lambda
+                                                           t: t.can_be_finished())
         for task in finished_tasks:
             task.finish()
         return [task.processor for task in finished_tasks]
