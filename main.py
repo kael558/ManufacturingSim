@@ -3,7 +3,7 @@ from fel import TaskQueue, Task
 
 if __name__ == '__main__':
     infinity = 9999999  # its over 9000 so its basically infinity
-    count = 600  # how many products to produce before stopping the simulation
+    count = 3  # how many products to produce before stopping the simulation
     total_time = 0.0
 
     task_queue = TaskQueue()
@@ -20,6 +20,19 @@ if __name__ == '__main__':
                    receiving={Component.C2: [W2], Component.C3: [W3]})
 
     processors = [I1, I2, W1, W2, W3]
+
+
+    def calculate_new_buffer_occupancy(prev_buff_occ, total_time, new_buff_occ, time_passed):
+        """
+        Helper method to calculate the new buffer occupancy given the previous buffer occupancy, total time,
+        new buffer occupancy and time passed
+        :param prev_buff_occ:
+        :param total_time:
+        :param new_buff_occ:
+        :param time_passed:
+        :return:
+        """
+        return (prev_buff_occ * total_time + new_buff_occ * time_passed) / (total_time + time_passed)
 
 
     def get_all_produced_count():
@@ -59,23 +72,25 @@ if __name__ == '__main__':
         # Print out Inspector stats
         for i in range(0, 2):
             print(f"-- I{i + 1} --")
-            print(f"\tTotal time blocked: {time_blocked[i]} seconds")
-            print(f"\tProportion of time blocked: {100 * time_blocked[i] / total_time}%")
+            print(f"\tTotal time blocked: {processors[i].time_blocked} seconds")
+            print(f"\tProportion of time blocked: {100 * processors[i].time_blocked / total_time}%")
 
         # Print out Workstation stats
         for i in range(2, 5):
             print(f"-- W{i - 1} --")
-            print(f"\tTotal time working: {time_working[i]}")
-            print(f"\tProportion of time working: {100 * time_working[i] / total_time}%")
+            print(f"\tTotal time working: {processors[i].time_working}")
+            print(f"\tProportion of time working: {100 * processors[i].time_working / total_time}%")
 
         # Print out Buffer stats
+        for i in range(2, 5):
+            for component in processors[i].buffers.keys():
+                print(f"Average buffer occupancy for component {component}: {processors[i].avg_buffer_occupancy[component]}/2")
+                print(f"Buffer arrival rate: {processors[i].component_arrivals[component]/total_time} {component}/s")
 
 
-    time_blocked = [0, 0, 0, 0, 0]
-    time_working = [0, 0, 0, 0, 0]
-    time_idling = [0, 0, 0, 0, 0]
+    time_passed = 0
 
-    while total_time < 100:
+    while count > get_all_produced_count():
         # attempt to start tasks
         for processor in processors:
             attempt_start_task(processor)
@@ -91,18 +106,16 @@ if __name__ == '__main__':
 
         print("\n--Tasks Completed--")
 
-
+        for i in range(2, 5):
+            workstation = processors[i]
+            workstation.update_buffer_qoi(total_time, time_passed)
 
         time_passed = task_queue.attempt_complete_task()  # goto future task and finish it
-        total_time += time_passed
 
+        # Compute simulation results
+        total_time += time_passed
         for i, processor in enumerate(processors):
-            if processor.is_free():
-                time_idling[i] += time_passed
-            elif processor.is_working():
-                time_working[i] += time_passed
-            elif processor.is_blocked():
-                time_blocked[i] += time_passed
+            processor.update_time_qoi(time_passed)
 
         if get_all_produced_count() == count:
             print("--Simulation complete--")
