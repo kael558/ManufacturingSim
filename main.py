@@ -84,7 +84,7 @@ if __name__ == '__main__':
         # Print out Buffer stats
         for i in range(2, 5):
             for component in processors[i].buffers.keys():
-                print(f"Average buffer occupancy for component {component}: {processors[i].avg_buffer_occupancy[component]}/2")
+                print(f"Average buffer occupancy for {component}: {processors[i].avg_buffer_occupancy[component]}/2")
                 print(f"Buffer arrival rate: {processors[i].component_arrivals[component]/total_time} {component}/s")
 
 
