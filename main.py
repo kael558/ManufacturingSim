@@ -82,10 +82,12 @@ if __name__ == '__main__':
             print(f"\tProportion of time working: {100 * processors[i].time_working / total_time}%")
 
         # Print out Buffer stats
+        print("\n-- Buffer Quantities of Interest --")
         for i in range(2, 5):
+            print(f"-- {processors[i].name()} --")
             for component in processors[i].buffers.keys():
-                print(f"Average buffer occupancy for {component}: {processors[i].avg_buffer_occupancy[component]}/2")
-                print(f"Buffer arrival rate: {processors[i].component_arrivals[component]/total_time} {component}/s")
+                print(f"\tAverage buffer occupancy for {component}: {processors[i].avg_buffer_occupancy[component]}/2")
+                print(f"\tBuffer arrival rate: {processors[i].component_arrivals[component]/total_time} {component}/s")
 
 
     time_passed = 0
