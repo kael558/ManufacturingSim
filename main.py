@@ -30,6 +30,7 @@ if __name__ == '__main__':
             processor_curr.set_working()
             task_queue.add_task(task)
 
+
     time_blocked = [0, 0, 0, 0, 0]
     time_working = [0, 0, 0, 0, 0]
     time_idling = [0, 0, 0, 0, 0]
@@ -53,10 +54,8 @@ if __name__ == '__main__':
 
         for i, processor in processors:
             if processor.is_free():
-                time_idling[i]+=time_passed
+                time_idling[i] += time_passed
             elif processor.is_working():
                 time_working[i] += time_passed
             elif processor.is_blocked():
                 time_blocked[i] += time_passed
-
-
