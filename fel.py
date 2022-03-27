@@ -1,5 +1,6 @@
-from processors import Processor, Workstation
-from numpy import random
+import numpy as np
+
+from processors import Processor, Workstation, Component
 
 class Task:
     def __init__(self, processor_curr: Processor, components: list):
@@ -8,10 +9,19 @@ class Task:
         :param processor_curr: either a workstation or an inspector
         :param components: the components that the processor works with
         """
-        # TODO time to inspect/process should be taken from fitted distributions of data provided.
-        self.time = random.normal(
-            loc=500 if isinstance(processor_curr, Workstation) else 100,
-            scale=10 if isinstance(processor_curr, Workstation) else 5)
+        self.rng = np.random.default_rng()
+        if isinstance(processor_curr, Workstation):
+            self.time = {
+                1: self.rng.exponential(4.604416667),
+                2: self.rng.exponential(11.0926066666667),
+                3: self.rng.exponential(8.79558),
+            }[processor_curr.index]
+        else:
+            self.time = {
+                Component.C1: self.rng.exponential(10.35791),
+                Component.C2: self.rng.exponential(15.53690333),
+                Component.C3: self.rng.exponential(20.63275667),
+            }[components[0]]
         self.processor = processor_curr
         self.components = components
 
@@ -20,7 +30,8 @@ class Task:
         Check to see if product can actually go somewhere
         :return:
         """
-        if isinstance(self.processor, Workstation):  # workstations can always finish
+        if isinstance(self.processor,
+                      Workstation):  # workstations can always finish
             return True
         component = self.components[0]  # inspectors only have 1 component
 
@@ -35,7 +46,6 @@ class Task:
         :return:
         """
         if isinstance(self.processor, Workstation):
-            # TODO That second item in the first f-string looks wrong maybe(?)
             print(
                 f"Workstation {self.processor.index}: produced Product {self.processor.index}")
             self.processor.counter += 1
@@ -130,7 +140,9 @@ class TaskQueue:
         check to see if blocked tasks can be completed and finish them.
         :return: the processors that finished their task
         """
-        finished_tasks, self.blocked_tasks = partition(self.blocked_tasks, lambda t: t.can_be_finished())
+        finished_tasks, self.blocked_tasks = partition(self.blocked_tasks,
+                                                       lambda
+                                                           t: t.can_be_finished())
         for task in finished_tasks:
             task.processor.set_free()
             task.finish()
