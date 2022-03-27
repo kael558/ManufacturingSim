@@ -4,7 +4,7 @@ from fel import TaskQueue, Task
 if __name__ == '__main__':
     infinity = 9999999  # its over 9000 so its basically infinity
     count = 600  # how many products to produce before stopping the simulation
-    clock = 0.0
+    total_time = 0.0
 
     task_queue = TaskQueue()
     W1 = Workstation(index=1, buffers={Component.C1: 0}, receiving={})
@@ -38,8 +38,7 @@ if __name__ == '__main__':
         """
         if processor_curr.is_free() and processor_curr.has_components():
             task = Task(processor_curr, processor_curr.get_components())
-
-            processor_curr.block()
+            processor_curr.set_working()
             task_queue.add_task(task)
 
 
@@ -65,7 +64,11 @@ if __name__ == '__main__':
         # Print out Buffer stats
 
         # Print out total throughput
-        print(f"\nOverall Throughput: {get_all_produced_count() / clock}products/sec")
+        print(f"\nOverall Throughput: {get_all_produced_count() / total_time}products/sec")
+
+    time_blocked = [0, 0, 0, 0, 0]
+    time_working = [0, 0, 0, 0, 0]
+    time_idling = [0, 0, 0, 0, 0]
 
 
     while True:
@@ -83,12 +86,23 @@ if __name__ == '__main__':
         print("\n".join(list(map(str, processors))))
 
         print("\n--Tasks Completed--")
-        clock = task_queue.attempt_complete_task(clock)  # goto future task and finish it
+
+        time_passed = task_queue.attempt_complete_task()  # goto future task and finish it
+        total_time+=time_passed
+
+        for i, processor in processors:
+            if processor.is_free():
+                time_idling[i] += time_passed
+            elif processor.is_working():
+                time_working[i] += time_passed
+            elif processor.is_blocked():
+                time_blocked[i] += time_passed
 
         if get_all_produced_count() == count:
             print("--Simulation complete--")
             break
 
     # End of simulation
-    print(clock)
     print_simulation_data()
+
+

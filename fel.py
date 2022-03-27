@@ -2,7 +2,6 @@ import numpy as np
 
 from processors import Processor, Workstation, Component
 
-
 class Task:
     def __init__(self, processor_curr: Processor, components: list):
         """
@@ -72,7 +71,7 @@ class Task:
             workstation.add_component(component)
             print(
                 f"{self.processor.name()}: sent component {component.value} to {workstation.name()}")
-        self.processor.free()  # free the processor to be used again
+
 
     def get_time(self):
         """
@@ -116,7 +115,7 @@ class TaskQueue:
         self.tasks = []
         self.blocked_tasks = []
 
-    def attempt_complete_task(self, clock):
+    def attempt_complete_task(self):
         """
         Attempts to complete the next task. It may be blocked, so it may be placed in a blockedTask list instead.
         """
@@ -135,11 +134,14 @@ class TaskQueue:
         #  finish or block the tasks
         for task in finished_tasks:
             if task.can_be_finished():
-                clock += task.get_time()
+                task.processor.set_free()
                 task.finish()
             else:
+                task.processor.set_blocked()
                 self.blocked_tasks.append(task)
-        return clock
+
+        return time_taken
+
 
     def attempt_blocked_tasks(self):
         """
@@ -150,6 +152,7 @@ class TaskQueue:
                                                        lambda
                                                            t: t.can_be_finished())
         for task in finished_tasks:
+            task.processor.set_free()
             task.finish()
         return [task.processor for task in finished_tasks]
 

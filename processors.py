@@ -17,17 +17,30 @@ class Processor:
         """
         self.index = index
         self.buffers = buffers
+        self.working = False
         self.blocked = False
         self.receiving = receiving
 
+    def is_working(self):
+        return self.working
+
+    def is_blocked(self):
+        return self.blocked
+
     def is_free(self):
-        return not self.blocked
+        return not self.blocked and not self.working
 
-    def block(self):
-        self.blocked = True
-
-    def free(self):
+    def set_working(self):
+        self.working = True
         self.blocked = False
+
+    def set_blocked(self):
+        self.blocked = True
+        self.working = False
+
+    def set_free(self):
+        self.blocked = False
+        self.working = False
 
     def get_num_components(self, component):
         return self.buffers[component]
@@ -81,3 +94,8 @@ class Inspector(Processor):
     def __str__(self):
         state = "free" if self.is_free() else "inspecting or blocked"
         return f"Inspector {self.index} is {state}."
+
+# product throughput
+# workstation busy time
+# inspector block time
+# buffer occupancy average
