@@ -3,6 +3,8 @@ from fel import TaskQueue, Task
 
 if __name__ == '__main__':
     infinity = 9999999  # its over 9000 so its basically infinity
+    count = 600  # how many products to produce before stopping the simulation
+    clock = 0.0
 
     task_queue = TaskQueue()
     W1 = Workstation(index=1, buffers={Component.C1: 0}, receiving={})
@@ -20,6 +22,15 @@ if __name__ == '__main__':
     processors = [I1, I2, W1, W2, W3]
 
 
+    def get_all_produced_count():
+        """
+        Helper method to determine the total number of products produced
+        :return: The total amount of products all workstations have produced
+        """
+        # Yeah this isn't a great way to do this
+        return sum(processors[i].get_count() for i in range(2, 5))
+
+
     def attempt_start_task(processor_curr: Processor):
         """
         helper method to try and create a task is possible
@@ -27,8 +38,34 @@ if __name__ == '__main__':
         """
         if processor_curr.is_free() and processor_curr.has_components():
             task = Task(processor_curr, processor_curr.get_components())
+
             processor_curr.block()
             task_queue.add_task(task)
+
+
+    def print_simulation_data():
+        """
+        Helper method to display the quantities of interest for the simulation.
+        """
+        # Print out Inspector stats
+        for i in range(0, 2):
+            print(f"I{i + 1}")
+            #print(f"Proportion of Time Spent Blocked: {}seconds")
+
+        # Print out Workstation stats
+        for i in range(2, 5):
+            print(f"W{i - 1}")
+            #print(f"\tThroughput: {}products/sec")
+            print(f"\tProducts Produced: {processors[i].get_count()}")
+            print(
+                f"\tProportion of Total Products Produced: {(processors[i].get_count() / count) * 100}%")
+            #print(f"\tTime Busy: {}")
+            #print(f"\tProportion of Time Spent Busy: {}")
+
+        # Print out Buffer stats
+
+        # Print out total throughput
+        print(f"\nOverall Throughput: {get_all_produced_count() / clock}products/sec")
 
 
     while True:
@@ -46,4 +83,12 @@ if __name__ == '__main__':
         print("\n".join(list(map(str, processors))))
 
         print("\n--Tasks Completed--")
-        task_queue.attempt_complete_task()  # goto future task and finish it
+        clock = task_queue.attempt_complete_task(clock)  # goto future task and finish it
+
+        if get_all_produced_count() == count:
+            print("--Simulation complete--")
+            break
+
+    # End of simulation
+    print(clock)
+    print_simulation_data()

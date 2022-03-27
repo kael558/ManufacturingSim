@@ -74,6 +74,12 @@ class Task:
                 f"{self.processor.name()}: sent component {component.value} to {workstation.name()}")
         self.processor.free()  # free the processor to be used again
 
+    def get_time(self):
+        """
+        :return: the time the task takes to complete as a dobule
+        """
+        return self.time
+
     def __str__(self):
         """
         :return: the str representation of the task
@@ -110,7 +116,7 @@ class TaskQueue:
         self.tasks = []
         self.blocked_tasks = []
 
-    def attempt_complete_task(self):
+    def attempt_complete_task(self, clock):
         """
         Attempts to complete the next task. It may be blocked, so it may be placed in a blockedTask list instead.
         """
@@ -129,9 +135,11 @@ class TaskQueue:
         #  finish or block the tasks
         for task in finished_tasks:
             if task.can_be_finished():
+                clock += task.get_time()
                 task.finish()
             else:
                 self.blocked_tasks.append(task)
+        return clock
 
     def attempt_blocked_tasks(self):
         """

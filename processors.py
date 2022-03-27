@@ -61,6 +61,9 @@ class Workstation(Processor):
     def name(self):
         return f"Workstation {self.index}"
 
+    def get_count(self):
+        return self.counter
+
     def __str__(self):
         state = "free" if self.is_free() else "processing"
         return f"Workstation {self.index} is {state}. Buffer: {self.buffers}"
