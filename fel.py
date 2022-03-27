@@ -47,11 +47,9 @@ class Task:
         :return:
         """
         if isinstance(self.processor, Workstation):
-            print(
-                f"Workstation {self.processor.index}: produced Product {self.processor.index}")
+            #print(f"Workstation {self.processor.index}: produced Product {self.processor.index}")
             self.processor.counter += 1
-            print(
-                f"It has produced {self.processor.counter} products thus far.")
+            #print(f"It has produced {self.processor.counter} products thus far.")
         else:
             component = self.components[0]  # inspectors only have 1 component
             # getting the minimum number of components
@@ -70,8 +68,7 @@ class Task:
 
             # send the component there
             workstation.add_component(component)
-            print(
-                f"{self.processor.name()}: sent component {component.value} to {workstation.name()}")
+            #print(f"{self.processor.name()}: sent component {component.value} to {workstation.name()}")
 
     def get_time(self):
         """
