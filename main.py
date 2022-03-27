@@ -49,22 +49,22 @@ if __name__ == '__main__':
         print("\n\n---SIMULATION RESULTS---")
         # Print out Product throughput
         for i in range(2, 5):
-            print(f"W{i - 1}")
+            print(f"-- W{i - 1} --")
             print(f"\tTotal products: {processors[i].get_count()}")
-            print(f"\tThroughput: {processors[i].get_count() / total_time}products/sec")
+            print(f"\tThroughput: {processors[i].get_count() / total_time} products/sec")
 
         # Print out total throughput
-        print(f"\nOverall Throughput: {get_all_produced_count() / total_time}products/sec")
+        print(f"Overall Throughput: {get_all_produced_count() / total_time} products/sec\n")
 
         # Print out Inspector stats
         for i in range(0, 2):
-            print(f"I{i + 1}")
+            print(f"-- I{i + 1} --")
             print(f"\tTotal time blocked: {time_blocked[i]} seconds")
             print(f"\tProportion of time blocked: {100 * time_blocked[i] / total_time}%")
 
         # Print out Workstation stats
         for i in range(2, 5):
-            print(f"W{i - 1}")
+            print(f"-- W{i - 1} --")
             print(f"\tTotal time working: {time_working[i]}")
             print(f"\tProportion of time working: {100 * time_working[i] / total_time}%")
 
@@ -75,7 +75,7 @@ if __name__ == '__main__':
     time_working = [0, 0, 0, 0, 0]
     time_idling = [0, 0, 0, 0, 0]
 
-    while total_time < 1000:
+    while total_time < 100:
         # attempt to start tasks
         for processor in processors:
             attempt_start_task(processor)
@@ -90,6 +90,8 @@ if __name__ == '__main__':
         print("\n".join(list(map(str, processors))))
 
         print("\n--Tasks Completed--")
+
+
 
         time_passed = task_queue.attempt_complete_task()  # goto future task and finish it
         total_time += time_passed
