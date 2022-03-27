@@ -2,6 +2,7 @@ import numpy as np
 
 from processors import Processor, Workstation, Component
 
+
 class Task:
     def __init__(self, processor_curr: Processor, components: list):
         """
@@ -72,7 +73,6 @@ class Task:
             print(
                 f"{self.processor.name()}: sent component {component.value} to {workstation.name()}")
 
-
     def get_time(self):
         """
         :return: the time the task takes to complete as a dobule
@@ -141,7 +141,6 @@ class TaskQueue:
                 self.blocked_tasks.append(task)
 
         return time_taken
-
 
     def attempt_blocked_tasks(self):
         """

@@ -27,7 +27,7 @@ if __name__ == '__main__':
         Helper method to determine the total number of products produced
         :return: The total amount of products all workstations have produced
         """
-        # Yeah this isn't a great way to do this
+        # Yeah this isn't a great way to do this LOL
         return sum(processors[i].get_count() for i in range(2, 5))
 
 
@@ -46,32 +46,36 @@ if __name__ == '__main__':
         """
         Helper method to display the quantities of interest for the simulation.
         """
+        print("\n\n---SIMULATION RESULTS---")
+        # Print out Product throughput
+        for i in range(2, 5):
+            print(f"W{i - 1}")
+            print(f"\tTotal products: {processors[i].get_count()}")
+            print(f"\tThroughput: {processors[i].get_count() / total_time}products/sec")
+
+        # Print out total throughput
+        print(f"\nOverall Throughput: {get_all_produced_count() / total_time}products/sec")
+
         # Print out Inspector stats
         for i in range(0, 2):
             print(f"I{i + 1}")
-            #print(f"Proportion of Time Spent Blocked: {}seconds")
+            print(f"\tTotal time blocked: {time_blocked[i]} seconds")
+            print(f"\tProportion of time blocked: {100 * time_blocked[i] / total_time}%")
 
         # Print out Workstation stats
         for i in range(2, 5):
             print(f"W{i - 1}")
-            #print(f"\tThroughput: {}products/sec")
-            print(f"\tProducts Produced: {processors[i].get_count()}")
-            print(
-                f"\tProportion of Total Products Produced: {(processors[i].get_count() / count) * 100}%")
-            #print(f"\tTime Busy: {}")
-            #print(f"\tProportion of Time Spent Busy: {}")
+            print(f"\tTotal time working: {time_working[i]}")
+            print(f"\tProportion of time working: {100 * time_working[i] / total_time}%")
 
         # Print out Buffer stats
 
-        # Print out total throughput
-        print(f"\nOverall Throughput: {get_all_produced_count() / total_time}products/sec")
 
     time_blocked = [0, 0, 0, 0, 0]
     time_working = [0, 0, 0, 0, 0]
     time_idling = [0, 0, 0, 0, 0]
 
-
-    while True:
+    while total_time < 1000:
         # attempt to start tasks
         for processor in processors:
             attempt_start_task(processor)
@@ -88,9 +92,9 @@ if __name__ == '__main__':
         print("\n--Tasks Completed--")
 
         time_passed = task_queue.attempt_complete_task()  # goto future task and finish it
-        total_time+=time_passed
+        total_time += time_passed
 
-        for i, processor in processors:
+        for i, processor in enumerate(processors):
             if processor.is_free():
                 time_idling[i] += time_passed
             elif processor.is_working():
@@ -104,5 +108,3 @@ if __name__ == '__main__':
 
     # End of simulation
     print_simulation_data()
-
-
