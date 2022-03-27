@@ -1,7 +1,6 @@
 from processors import Processor, Workstation
 from numpy import random
 
-
 class Task:
     def __init__(self, processor_curr: Processor, components: list):
         """
@@ -62,7 +61,7 @@ class Task:
             workstation.add_component(component)
             print(
                 f"{self.processor.name()}: sent component {component.value} to {workstation.name()}")
-        self.processor.free()  # free the processor to be used again
+
 
     def __str__(self):
         """
@@ -119,9 +118,12 @@ class TaskQueue:
         #  finish or block the tasks
         for task in finished_tasks:
             if task.can_be_finished():
+                task.processor.set_free()
                 task.finish()
             else:
+                task.processor.set_blocked()
                 self.blocked_tasks.append(task)
+        return time_taken
 
     def attempt_blocked_tasks(self):
         """
@@ -130,6 +132,7 @@ class TaskQueue:
         """
         finished_tasks, self.blocked_tasks = partition(self.blocked_tasks, lambda t: t.can_be_finished())
         for task in finished_tasks:
+            task.processor.set_free()
             task.finish()
         return [task.processor for task in finished_tasks]
 

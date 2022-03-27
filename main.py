@@ -22,9 +22,12 @@ if __name__ == '__main__':
         """
         if processor_curr.is_free() and processor_curr.has_components():
             task = Task(processor_curr, processor_curr.get_components())
-            processor_curr.block()
+            processor_curr.set_working()
             task_queue.add_task(task)
 
+    time_blocked = [0, 0, 0, 0, 0]
+    time_working = [0, 0, 0, 0, 0]
+    time_idling = [0, 0, 0, 0, 0]
 
     while True:
         # attempt to start tasks
@@ -41,4 +44,14 @@ if __name__ == '__main__':
         print("\n".join(list(map(str, processors))))
 
         print("\n--Tasks Completed--")
-        task_queue.attempt_complete_task()  # goto future task and finish it
+        time_passed = task_queue.attempt_complete_task()  # goto future task and finish it
+
+        for i, processor in processors:
+            if processor.is_free():
+                time_idling[i]+=time_passed
+            elif processor.is_working():
+                time_working[i] += time_passed
+            elif processor.is_blocked():
+                time_blocked[i] += time_passed
+
+
