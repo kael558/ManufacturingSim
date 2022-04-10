@@ -1,30 +1,29 @@
-import numpy as np
-
 from processors import Processor, Workstation, Component
 
 
 class Task:
+    process_times = {
+        1: [],
+        2: [],
+        3: [],
+        Component.C1: [],
+        Component.C2: [],
+        Component.C3: []
+    }
+
     def __init__(self, processor_curr: Processor, components: list):
         """
         Obj that wraps processor with time to process/inspect to components.
         :param processor_curr: either a workstation or an inspector
         :param components: the components that the processor works with
         """
-        self.rng = np.random.default_rng()
         if isinstance(processor_curr, Workstation):
-            self.time = {
-                1: self.rng.exponential(4.604416667),
-                2: self.rng.exponential(11.0926066666667),
-                3: self.rng.exponential(8.79558),
-            }[processor_curr.index]
+            self.time = Task.process_times[processor_curr.index].pop()
         else:
-            self.time = {
-                Component.C1: self.rng.exponential(10.35791),
-                Component.C2: self.rng.exponential(15.53690333),
-                Component.C3: self.rng.exponential(20.63275667),
-            }[components[0]]
+            self.time = Task.process_times[components[0]].pop()
         self.processor = processor_curr
         self.components = components
+
 
     def can_be_finished(self):
         """

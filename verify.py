@@ -2,13 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 data = []
-rng = np.random.default_rng()
+mean = 20.63275667
 
-for i in range(300):
-  data.append(rng.exponential(4.604416667)) # mean goes here for specific process distribution
+for i in range(10000):
+  data.append(np.random.exponential(mean)) # mean goes here for specific process distribution
 
 plt.hist(data, bins=18)
 plt.show()
 
 print(f"The average is {sum(data) / len(data)}")
-print(f"The difference between the expected and generated is {4.604416667 - (sum(data) / len(data))} or {abs(4.604416667 / (sum(data) / len(data)))}%")
+print(f"The difference between the expected and generated is {mean - (sum(data) / len(data))} or {abs(mean / (sum(data) / len(data)))}%")
