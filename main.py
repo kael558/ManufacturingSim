@@ -4,7 +4,7 @@ from processors import Processor, Workstation, Inspector, Component
 from fel import TaskQueue, Task
 
 if __name__ == '__main__':
-    def populate_process_times(n):
+    def populate_process_times(n, seed):
         exp = {
             1: 4.604416667,
             2: 11.0926066666667,
@@ -13,7 +13,7 @@ if __name__ == '__main__':
             Component.C2: 15.53690333,
             Component.C3: 20.63275667
         }
-        np.random.seed(69)
+        np.random.seed(seed)
         for p in exp:
             Task.process_times[p].clear()
             for _ in range(n):
@@ -31,7 +31,6 @@ if __name__ == '__main__':
         Helper method to determine the total number of products produced
         :return: The total amount of products all workstations have produced
         """
-        # Yeah this isn't a great way to do this LOL
         return sum(processors[i].get_count() for i in range(2, 5))
 
 
@@ -51,6 +50,7 @@ if __name__ == '__main__':
         Helper method to display the quantities of interest for the simulation.
         """
         print("\n\n---SIMULATION RESULTS---")
+
         # Print out Product throughput
         for i in range(2, 5):
             print(f"-- W{i - 1} --")
@@ -65,7 +65,7 @@ if __name__ == '__main__':
             print(f"-- I{i + 1} --")
             print(f"\tTotal time blocked: {processors[i].time_blocked} seconds")
             print(f"\tProportion of time blocked: {100 * processors[i].time_blocked / total_time}%")
-
+        
         # Print out Workstation stats
         for i in range(2, 5):
             print(f"-- W{i - 1} --")
@@ -80,18 +80,29 @@ if __name__ == '__main__':
                 print(f"\tAverage buffer occupancy for {component}: {processors[i].avg_buffer_occupancy[component]}/2")
                 print(f"\tBuffer arrival rate: {processors[i].component_arrivals[component]/total_time} {component}/s")
 
-    R0 = 1
+        # Print out total throughput
+        print(f"Overall Throughput: {get_all_produced_count() / total_time} products/sec\n")
+
+        print(f"Sum of inspector time blocked: {sum(processors[i].time_blocked for i in range(0, 2))} sec\n")
+
+        print(f"Sum of workstation time working: {sum(processors[i].time_working for i in range(2, 5))} sec\n")
+
+
+    R0 = 10
 
     throughput_P1 = []
     throughput_P2 = []
     throughput_P3 = []
 
+    blocktime_I1 = []
+    blocktime_I2 = []
+
     for R in range(1, R0+1):
         time_passed = 0
         infinity = 9999999  # its over 9000 so its basically infinity
-        count = 1000  # how many products to produce before stopping the simulation
+        count = 10000  # how many products to produce before stopping the simulation
         total_time = 0.0
-        populate_process_times(count*2)
+        populate_process_times(count*2, R)
 
         task_queue = TaskQueue()
         W1 = Workstation(index=1, buffers={Component.C1: 0}, receiving={})
@@ -150,6 +161,8 @@ if __name__ == '__main__':
         throughput_P1.append(W1.get_count())
         throughput_P2.append(W2.get_count())
         throughput_P3.append(W3.get_count())
+        blocktime_I1.append(I1.time_blocked)
+        blocktime_I2.append(I2.time_blocked)
 
     def calc_m_s(data):
         mean = sum(data)/len(data)
@@ -159,3 +172,5 @@ if __name__ == '__main__':
     print(calc_m_s(throughput_P1))
     print(calc_m_s(throughput_P2))
     print(calc_m_s(throughput_P3))
+    print(calc_m_s(blocktime_I1))
+    print(calc_m_s(blocktime_I2))

@@ -51,6 +51,7 @@ class Task:
             #print(f"It has produced {self.processor.counter} products thus far.")
         else:
             component = self.components[0]  # inspectors only have 1 component
+
             # getting the minimum number of components
             min_num_components = min(self.processor.receiving[component],
                                      key=lambda w: w.get_num_components(
@@ -63,15 +64,16 @@ class Task:
                                        self.processor.receiving[component]))
 
             # choosing the workstation with the lowest index
-            workstation = max(workstations, key=lambda w: w.index)
+            workstation = min(workstations, key=lambda w: w.index)
 
             # send the component there
             workstation.add_component(component)
+
             #print(f"{self.processor.name()}: sent component {component.value} to {workstation.name()}")
 
     def get_time(self):
         """
-        :return: the time the task takes to complete as a dobule
+        :return: the time the task takes to complete as a double
         """
         return self.time
 
