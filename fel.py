@@ -63,7 +63,7 @@ class Task:
                                        self.processor.receiving[component]))
 
             # choosing the workstation with the lowest index
-            workstation = min(workstations, key=lambda w: w.index)
+            workstation = max(workstations, key=lambda w: w.index)
 
             # send the component there
             workstation.add_component(component)

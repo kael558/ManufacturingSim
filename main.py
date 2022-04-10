@@ -80,10 +80,6 @@ if __name__ == '__main__':
                 print(f"\tAverage buffer occupancy for {component}: {processors[i].avg_buffer_occupancy[component]}/2")
                 print(f"\tBuffer arrival rate: {processors[i].component_arrivals[component]/total_time} {component}/s")
 
-
-
-
-
     R0 = 1
 
     throughput_P1 = []
